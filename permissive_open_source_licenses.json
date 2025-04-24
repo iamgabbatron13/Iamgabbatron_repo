@@ -1,0 +1,8 @@
+[
+  { "license": "MIT", "type": "Permissive", "notes": "Allows reuse with minimal conditions" },
+  { "license": "BSD 2-Clause", "type": "Permissive", "notes": "Simplified license with minimal restrictions" },
+  { "license": "BSD 3-Clause", "type": "Permissive", "notes": "Adds non-endorsement clause" },
+  { "license": "Apache 2.0", "type": "Permissive", "notes": "Includes explicit patent license" },
+  { "license": "ISC", "type": "Permissive", "notes": "Very short MIT-style license" },
+  { "license": "Zlib", "type": "Permissive", "notes": "Permissive and simple for C/C++ libraries" }
+]
