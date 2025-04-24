@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Gear to Car Wheels</title>
+    <!-- Add Three.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+    <!-- Add OrbitControls for camera movement -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Your 3D Scene script goes here -->
+    <script>
+        // 1. Set up basic Three.js scene
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Add OrbitControls for camera interaction
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // 3. Create a gear (cylinder shape)
+        var gearGeometry = new THREE.CylinderGeometry(1, 1, 0.2, 32);
+        var gearMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        var gear = new THREE.Mesh(gearGeometry, gearMaterial);
+        gear.rotation.x = Math.PI / 2; // Rotate to lay flat
+        scene.add(gear);
+
+        // 4. Create a wheel (another cylinder)
+        var wheelGeometry = new THREE.CylinderGeometry(1, 1, 0.2, 32);
+        var wheelMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        var wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        wheel.rotation.x = Math.PI / 2;
+        wheel.visible = false; // Start hidden
+        scene.add(wheel);
+
+        // 5. Create a clock gear (slightly larger cylinder)
+        var clockGearGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.2, 32);
+        var clockGearMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        var clockGear = new THREE.Mesh(clockGearGeometry, clockGearMaterial);
+        clockGear.rotation.x = Math.PI / 2;
+        clockGear.visible = false; // Start hidden
+        scene.add(clockGear);
+
+        // 6. Create 4 wheels for a car (initially hidden)
+        var carWheelGeometry = new THREE.CylinderGeometry(1, 1, 0.2, 32);
+        var carWheelMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        var carWheels = [];
+        for (var i = 0; i < 4; i++) {
+            var carWheel = new THREE.Mesh(carWheelGeometry, carWheelMaterial);
+            carWheel.rotation.x = Math.PI / 2;
+            carWheel.visible = false; // Initially hidden
+            carWheels.push(carWheel);
+            scene.add(carWheel);
+        }
+
+        // Position the car wheels
+        carWheels[0].position.set(-2, -1, 2);
+        carWheels[1].position.set(2, -1, 2);
+        carWheels[2].position.set(-2, -1, -2);
+        carWheels[3].position.set(2, -1, -2);
+
+        camera.position.z = 5;
+
+        // 7. Setup raycasting and mouse events for interaction
+        var state = 0; // Keep track of the sequence
+        var raycaster = new THREE.Raycaster();
+        var mouse = new THREE.Vector2();
+
+        // Listen for mouse click events
+        window.addEventListener('click', onMouseClick, false);
+
+        function onMouseClick(event) {
+            // Convert mouse click coordinates to normalized device coordinates
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update raycaster
+            raycaster.setFromCamera(mouse, camera);
+
+            // Check if the gear was clicked
+            var intersects = raycaster.intersectObject(gear);
+
+            if (intersects.length > 0) {
+                // Change the state to morph objects based on clicks
+                if (state === 0) {
+                    gear.visible = false;
+                    wheel.visible = true;
+                    state = 1; // Move to wheel stage
+                } else if (state === 1) {
+                    wheel.visible = false;
+                    clockGear.visible = true;
+                    state = 2; // Move to clock gear stage
+                } else if (state === 2) {
+                    clockGear.visible = false;
+                    carWheels.forEach(function(wheel) { wheel.visible = true; });
+                    state = 3; // Move to car wheels stage
+                }
+            }
+        }
+
+        // 8. Animation loop to rotate objects
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate the clock gear and car wheels when visible
+            if (clockGear.visible) {
+                clockGear.rotation.z += 0.02;
+            }
+
+            if (carWheels[0].visible) {
+                carWheels.forEach(function(wheel) {
+                    wheel.rotation.z += 0.02;
+                });
+            }
+
+            controls.update(); // Update camera controls
+            renderer.render(scene, camera); // Render the scene
+        }
+
+        animate();
+    </script>
+</body>
+</html>
